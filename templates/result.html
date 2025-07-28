@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord de Prédiction DDoS</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <!-- Lien vers le fichier CSS externe -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Pour les icônes (Font Awesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Barre Latérale -->
+    <div class="sidebar">
+        <div class="sidebar-icon"><i class="fas fa-bars"></i></div> <!-- Menu icon -->
+        <div class="sidebar-icon"><i class="fas fa-home"></i></div> <!-- Home icon -->
+        <div class="sidebar-icon"><i class="fas fa-chart-bar"></i></div> <!-- Chart icon -->
+        <div class="sidebar-icon">2</div> <!-- Numeric icon placeholder -->
+        <div class="sidebar-icon"><i class="fas fa-info-circle"></i></div> <!-- Info icon -->
+    </div>
+
+    <!-- Contenu Principal -->
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h1>Tableau de Bord d'Analyse des Attaques DDoS</h1>
+            <p>Visualisation des prédictions de types de trafic réseau.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Panneau 1: Pie Chart (Nombre de Label par Label) -->
+            <div class="panel">
+                <h3>Distribution des types de trafic</h3>
+                <img src="{{ url_for('static', filename='prediction_piechart.png') }}" alt="Distribution des prédictions">
+            </div>
+
+            <!-- Panneau 2: Résumé des prédictions (Table) -->
+            <div class="panel">
+                <h3>Résumé des prédictions</h3>
+                {{ summary_table|safe }}
+            </div>
+            
+            <!-- Section de téléchargement CSV (étend toute la largeur) -->
+            <div class="download-link" style="grid-column: 1 / -1;">
+                <p><a href="{{ url_for('static', filename='predicted_results.csv') }}" download>Télécharger le fichier complet avec toutes les prédictions (CSV)</a></p>
+            </div>
+
+            <!-- Aperçu des 5 premières lignes du fichier traité (étend toute la largeur) -->
+            <div class="full-width-table panel">
+                <h3>Aperçu des 5 premières lignes du fichier traité :</h3>
+                {{ preview_table|safe }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
