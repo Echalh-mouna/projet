@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from flask_minify import Minify
 from sys import exit
 
-from api_generator.commands import gen_api
+# from api_generator.commands import gen_api  # Désactivé pour éviter les erreurs
 from apps.config import config_dict
 from apps import create_app, db
 
@@ -24,18 +24,17 @@ app = create_app(app_config)
 
 # Charger le modèle sauvegardé
 # Charger le modèle sauvegardé
-
 try:
     with open('nnc.pkl', 'rb') as f:
         loaded_rf_model = pickle.load(f)
 except FileNotFoundError:
     print("Le fichier nnc.pkl n'a pas été trouvé.")
+  
 
 
-
-@app.route('/')
-def home():
-    return render_template('index.html')
+# @app.route('/')
+# def home():
+#     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -87,9 +86,9 @@ if DEBUG:
     app.logger.info('DBMS             = ' + app_config.SQLALCHEMY_DATABASE_URI)
     app.logger.info('ASSETS_ROOT      = ' + app_config.ASSETS_ROOT)
 
-# Ajouter les commandes CLI
-for command in [gen_api, ]:
-    app.cli.add_command(command)
+# Ajouter les commandes CLI (désactivé)
+# for command in [gen_api, ]:
+#     app.cli.add_command(command)
 
 if __name__ == "__main__":
     app.run(debug=DEBUG)
