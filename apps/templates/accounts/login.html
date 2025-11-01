@@ -1,9 +1,59 @@
 {% extends 'layouts/base-fullscreen.html' %}
 
-{% block title %} Sign IN {% endblock title %}
+{% block title %} Connexion {% endblock title %}
 
 <!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .login-card {
+    background: white !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+  }
+  
+  body.dark-version .login-card {
+    background: #404B69 !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+  }
+  
+  .login-header {
+    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+  
+  .btn-login {
+    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%) !important;
+    border: none !important;
+    color: white !important;
+  }
+  
+  .btn-register {
+    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%) !important;
+    border: none !important;
+    color: white !important;
+  }
+  
+  body.dark-version {
+    background: linear-gradient(135deg, #283149 0%, #1a1f2e 100%) !important;
+  }
+  
+  body.dark-version label {
+    color: #ffffff !important;
+  }
+</style>
+<script>
+// Apply saved theme on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-version');
+  }
+});
+</script>
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -23,11 +73,11 @@
         <div class="container">
           <div class="row">
             <div class="col-xl-4 col-lg-5 col-md-6 d-flex flex-column mx-auto">
-              <div class="card card-plain mt-8">
+              <div class="card card-plain mt-8 login-card">
                 <div class="card-header pb-0 text-left bg-transparent">
-                  <h3 class="font-weight-bolder text-info text-gradient">
-                     Dashboard
-                  </h3>
+                  <h5 class="font-weight-bolder login-header">
+                     Connexion SafeNet
+                  </h5>
                   <p class="mb-0">
                     {% if msg %}
                       <span class="text-danger">{{ msg | safe }}</span>
@@ -41,22 +91,22 @@
                     
                     {{ form.hidden_tag() }}
 
-                    <label>Username</label>
+                    <label>Nom d'utilisateur</label>
                     <div class="mb-3">
-                      {{ form.username(placeholder="Username", class="form-control") }}
+                      {{ form.username(placeholder="Nom d'utilisateur", class="form-control") }}
                     </div>
 
-                    <label>Password</label>
+                    <label>Mot de passe</label>
                     <div class="mb-3">
-                      {{ form.password(placeholder="Password", class="form-control", type="password") }}
+                      {{ form.password(placeholder="Mot de passe", class="form-control", type="password") }}
                     </div>
 
                     <div class="text-center">
-                      <button type="submit" name="login" class="btn bg-gradient-info w-100 mt-4 mb-0">Sign IN</button>
+                      <button type="submit" name="login" class="btn btn-login w-100 mt-4 mb-0">Se Connecter</button>
                     </div>
 
                     <div class="text-center">
-                      <a href="{{ url_for('authentication_blueprint.register') }}" class="btn bg-gradient-secondary w-100 mt-4 mb-0">Sign UP</a>
+                      <a href="{{ url_for('authentication_blueprint.register') }}" class="btn btn-register w-100 mt-4 mb-0">S'inscrire</a>
                     </div>
 
                   </form>
@@ -68,7 +118,7 @@
                     <!-- GitHub button starts here -->
                     {% if config.SOCIAL_AUTH_GITHUB %}
                       
-                      <p class="mb-2">or SignIn with</p>
+                      <p class="mb-2">ou se connecter avec</p>
                       
                       <a class="btn btn-outline" href="{{url_for('authentication_blueprint.login_github')}}">
                         <span class="text-lg fs-1 fab fa-github"></span>

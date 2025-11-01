@@ -1,9 +1,72 @@
 {% extends 'layouts/base-fullscreen.html' %}
 
-{% block title %} Sign UP {% endblock title %}
+{% block title %} Inscription {% endblock title %}
 
 <!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .register-card {
+    background: white !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+  }
+  
+  body.dark-version .register-card {
+    background: #404B69 !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+  }
+  
+  .login-header {
+    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+  
+  .btn-register-primary {
+    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%) !important;
+    border: none !important;
+    color: white !important;
+  }
+  
+  .btn-register-secondary {
+    background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%) !important;
+    border: none !important;
+    color: white !important;
+  }
+  
+  body.dark-version {
+    background: linear-gradient(135deg, #283149 0%, #1a1f2e 100%) !important;
+  }
+  
+  body.dark-version label {
+    color: #ffffff !important;
+  }
+  
+  body.dark-version .login-header {
+    background: linear-gradient(135deg, #cb0c9f 0%, #6a007d 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    color: transparent !important;
+  }
+  
+  body.dark-version .card-header {
+    background: #404B69 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  }
+</style>
+<script>
+// Apply saved theme on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-version');
+  }
+});
+</script>
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -27,10 +90,10 @@
       <div class="container">
         <div class="row mt-lg-n10 mt-md-n11 mt-n10">
           <div class="col-xl-4 col-lg-5 col-md-7 mx-auto">
-            <div class="card z-index-0">
+            <div class="card z-index-0 register-card">
 
               <div class="card-header text-center pt-4">
-                <h5>Sign UP</h5>
+                <h5 class="font-weight-bolder login-header">Inscription SafeNet</h5>
               </div>
 
               <div class="row px-xl-5 px-sm-4 px-3">
@@ -40,7 +103,7 @@
                     {% if msg %}
                       <span class="text-danger">{{ msg | safe }}</span>
                     {% else %}
-                      Add your credentials
+                      Ajoutez vos informations
                     {% endif %}  
                   </p>
                 </div>
@@ -53,7 +116,7 @@
                 
                   <p class="text-sm mt-3 mb-0 text-center"> 
                     <div class="text-center">
-                      <a href="{{ url_for('authentication_blueprint.login') }}" class="btn bg-gradient-dark w-100 my-4 mb-2">Sign IN</a>
+                      <a href="{{ url_for('authentication_blueprint.login') }}" class="btn btn-register-primary w-100 my-4 mb-2">Se Connecter</a>
                     </div> 
                   </p>
 
@@ -63,25 +126,25 @@
 
                     {{ form.hidden_tag() }}
 
-                      <label>Username</label>
+                      <label>Nom d'utilisateur</label>
                       <div class="mb-3">
-                        {{ form.username(placeholder="Username", class="form-control") }}
+                        {{ form.username(placeholder="Nom d'utilisateur", class="form-control") }}
                       </div>
                       <label>Email</label>
                       <div class="mb-3">
                         {{ form.email(placeholder="Email", class="input form-control", type="email") }}
                       </div>
-                      <label>Password</label>
+                      <label>Mot de passe</label>
                       <div class="mb-3">
-                        {{ form.password(placeholder="Password", class="form-control", type="password") }}
+                        {{ form.password(placeholder="Mot de passe", class="form-control", type="password") }}
                       </div>
 
                       <div class="text-center">
-                        <button type="submit" name="register" class="btn bg-gradient-dark w-100 my-4 mb-2">Sign UP</button>
+                        <button type="submit" name="register" class="btn btn-register-primary w-100 my-4 mb-2">S'inscrire</button>
                       </div>
 
                       <div class="text-center">
-                        <a href="{{ url_for('authentication_blueprint.login') }}" class="btn bg-gradient-secondary w-100 mt-4 mb-0">Sign IN</a>
+                        <a href="{{ url_for('authentication_blueprint.login') }}" class="btn btn-register-secondary w-100 mt-4 mb-0">Se Connecter</a>
                       </div>                
 
                   </form>

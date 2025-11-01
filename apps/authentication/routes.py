@@ -9,21 +9,22 @@ from datetime import datetime
 # from flask_restx import Resource, Api
 
 import flask
-from flask import render_template, redirect, request, url_for
+from flask import render_template, redirect, request, url_for, flash
 from flask_login import (
     current_user,
     login_user,
-    logout_user
+    logout_user,
+    login_required
 )
 
 from flask_dance.contrib.github import github
 
 from apps import db, login_manager
 from apps.authentication import blueprint
-from apps.authentication.forms import LoginForm, CreateAccountForm
+from apps.authentication.forms import LoginForm, CreateAccountForm, UpdateProfileForm, ChangePasswordForm
 from apps.authentication.models import Users
 
-from apps.authentication.util import verify_pass, generate_token
+from apps.authentication.util import verify_pass, generate_token, hash_pass
 
 # Bind API -> Auth BP (désactivé)
 # api = Api(blueprint)
@@ -32,7 +33,7 @@ from apps.authentication.util import verify_pass, generate_token
 def route_default():
     from flask_login import current_user
     if current_user.is_authenticated:
-        return redirect(url_for('home_blueprint.index'))
+        return redirect(url_for('home_blueprint.upload'))
     else:
         return redirect(url_for('authentication_blueprint.login'))
 
@@ -45,7 +46,7 @@ def login_github():
         return redirect(url_for("github.login"))
 
     res = github.get("/user")
-    return redirect(url_for('home_blueprint.index'))
+    return redirect(url_for('home_blueprint.upload'))
 
 @blueprint.route('/login', methods=['GET', 'POST'])
 def login():
@@ -67,8 +68,8 @@ def login():
         # Check the password
         if user and verify_pass(password, user.password):
             login_user(user)
-            print(f"Utilisateur {username} connecté avec succès, redirection vers /index")
-            return redirect('/index')
+            print(f"Utilisateur {username} connecté avec succès, redirection vers /upload")
+            return redirect('/upload')
         else:
             print(f"Échec de connexion pour {username}")
             # Something (user or pass) is not ok
@@ -77,7 +78,7 @@ def login():
                                    form=login_form)
 
     if current_user.is_authenticated:
-        return redirect(url_for('home_blueprint.index'))
+        return redirect(url_for('home_blueprint.upload'))
     else:
         return render_template('accounts/login.html',
                                form=login_form) 
@@ -171,7 +172,96 @@ def login_jwt():
 @blueprint.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('authentication_blueprint.login')) 
+    return redirect(url_for('authentication_blueprint.login'))
+
+
+@blueprint.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """Route pour afficher et modifier le profil utilisateur"""
+    update_profile_form = UpdateProfileForm()
+    change_password_form = ChangePasswordForm()
+    password_message = None
+    
+    if request.method == 'POST':
+        if 'update_profile' in request.form:
+            # Traitement de la mise à jour du profil
+            if update_profile_form.validate_on_submit():
+                current_user.full_name = update_profile_form.full_name.data
+                current_user.email = update_profile_form.email.data
+                current_user.mobile = update_profile_form.mobile.data
+                current_user.location = update_profile_form.location.data
+                
+                db.session.commit()
+                flash('Profil mis à jour avec succès!', 'success')
+                return redirect(url_for('authentication_blueprint.profile'))
+        
+        elif 'change_password' in request.form:
+            # Traitement du changement de mot de passe
+            if change_password_form.validate_on_submit():
+                old_password = change_password_form.old_password.data
+                new_password = change_password_form.new_password.data
+                
+                # Vérifier l'ancien mot de passe
+                if verify_pass(old_password, current_user.password):
+                    # Mettre à jour le mot de passe
+                    current_user.password = hash_pass(new_password)
+                    db.session.commit()
+                    password_message = "Mot de passe changé avec succès!"
+                else:
+                    password_message = "Ancien mot de passe incorrect!"
+    
+    return render_template('home/profile.html', 
+                         update_profile_form=update_profile_form,
+                         change_password_form=change_password_form,
+                         password_message=password_message,
+                         page_title='Profil',
+                         segment='profile')
+
+
+@blueprint.route('/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    """Route pour mettre à jour le profil utilisateur"""
+    update_profile_form = UpdateProfileForm(request.form)
+    
+    if update_profile_form.validate_on_submit():
+        current_user.full_name = update_profile_form.full_name.data
+        current_user.email = update_profile_form.email.data
+        current_user.mobile = update_profile_form.mobile.data
+        current_user.location = update_profile_form.location.data
+        
+        db.session.commit()
+        flash('Profil mis à jour avec succès!', 'success')
+    else:
+        flash('Erreur lors de la mise à jour du profil', 'error')
+    
+    return redirect(url_for('authentication_blueprint.profile'))
+
+
+@blueprint.route('/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Route pour changer le mot de passe"""
+    change_password_form = ChangePasswordForm(request.form)
+    password_message = None
+    
+    if change_password_form.validate_on_submit():
+        old_password = change_password_form.old_password.data
+        new_password = change_password_form.new_password.data
+        
+        # Vérifier l'ancien mot de passe
+        if verify_pass(old_password, current_user.password):
+            # Mettre à jour le mot de passe
+            current_user.password = hash_pass(new_password)
+            db.session.commit()
+            password_message = "Mot de passe changé avec succès!"
+        else:
+            password_message = "Ancien mot de passe incorrect!"
+    else:
+        password_message = "Erreur de validation du formulaire"
+    
+    return redirect(url_for('authentication_blueprint.profile', password_message=password_message)) 
 
 # Errors
 

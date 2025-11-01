@@ -19,6 +19,7 @@
   <link href="{{ config.ASSETS_ROOT }}/css/nucleo-svg.css" rel="stylesheet" />
   <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-dymIISrVZ6mV5Yf0q9Y6qS9ZzG3bPp+v0Jc3m7mO1c2zYq4Q3gH8mT6l8sYp0+7q8hZlK3L0Q0h2FQpJrLQZ3A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="{{ config.ASSETS_ROOT }}/css/nucleo-svg.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="{{ config.ASSETS_ROOT }}/css/soft-ui-dashboard.css?v=1.0.6" rel="stylesheet" />
@@ -26,10 +27,119 @@
   <link id="pagestyle_dark" href="{{ config.ASSETS_ROOT }}/css/dark-theme-core.css" rel="stylesheet" />
 
   <!-- Specific CSS goes HERE -->
-  {% block stylesheets %}{% endblock stylesheets %}  
+  {% block stylesheets %}{% endblock stylesheets %}
+  
+  <!-- Enhanced Dark/Light Mode Styling -->
+  <style>
+    /* Light Mode Defaults */
+    body {
+      background: #f8f9fa;
+      color: #344767;
+      transition: all 0.3s ease;
+    }
+    
+    .card {
+      background: white;
+      color: #344767;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      border: 1px solid #dee2e6;
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    /* Dark Mode Overrides */
+    body.dark-version {
+      background: #1a1f2e !important;
+      color: #ffffff !important;
+    }
+    
+    body.dark-version .card {
+      background: #404B69 !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    
+    body.dark-version .card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+    }
+    
+    /* Text Colors */
+    body.dark-version h1,
+    body.dark-version h2,
+    body.dark-version h3,
+    body.dark-version h4,
+    body.dark-version h5,
+    body.dark-version h6,
+    body.dark-version .text-dark {
+      color: #ffffff !important;
+    }
+    
+    body.dark-version .text-muted {
+      color: #d7d7d7 !important;
+    }
+    
+    /* Form Controls */
+    body.dark-version .form-control {
+      background-color: #283149 !important;
+      border-color: rgba(255,255,255,0.2) !important;
+      color: #ffffff !important;
+    }
+    
+    body.dark-version .form-control:focus {
+      background-color: #283149 !important;
+      border-color: #6a007d !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 0 0.2rem rgba(106, 0, 125, 0.25) !important;
+    }
+    
+    body.dark-version .form-label {
+      color: #ffffff !important;
+    }
+    
+    /* Tables */
+    body.dark-version .table {
+      color: #ffffff !important;
+    }
+    
+    body.dark-version .table th {
+      background-color: #283149 !important;
+      color: #ffffff !important;
+      border-color: rgba(255,255,255,0.1) !important;
+    }
+    
+    body.dark-version .table td {
+      border-color: rgba(255,255,255,0.1) !important;
+    }
+    
+    /* Navigation */
+    body.dark-version .navbar {
+      background: rgba(26,31,46,0.95) !important;
+    }
+    
+    body.dark-version .breadcrumb-item a {
+      color: #cb0c9f !important;
+    }
+    
+    body.dark-version .breadcrumb-item.active {
+      color: #ffffff !important;
+    }
+    
+    /* SafeNet brand in navigation */
+    body.dark-version .navbar-brand {
+      color: #ffffff !important;
+    }
+    
+    body.dark-version .breadcrumb-item {
+      color: #d7d7d7 !important;
+    }
+  </style>
 
 </head>
-<body class="g-sidenav-show  bg-gray-100">
+<body class="g-sidenav-show">
   
   {% include "includes/sidebar.html" %} 
 
@@ -39,10 +149,9 @@
 
     {% block content %}{% endblock content %}
 
-  </main>
+    {% include "includes/footer.html" %}
 
-  <!-- APP Configurator -->
-  {% include "includes/fixed-plugin.html" %} 
+  </main>
 
   <!-- Core JS Files -->
   {% include "includes/scripts.html" %}

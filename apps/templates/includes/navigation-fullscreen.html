@@ -20,23 +20,23 @@
           <li class="nav-item">
             <a class="nav-link me-2" href="{{ url_for('authentication_blueprint.register') }}">
               <i class="fas fa-user-circle opacity-6 me-1"></i>
-              Sign Up
+              S'inscrire
             </a>
           </li>
 
           <li class="nav-item">
             <a class="nav-link me-2" href="{{ url_for('authentication_blueprint.login') }}">
               <i class="fas fa-key opacity-6 me-1"></i>
-              Sign In
+              Se Connecter
             </a>
           </li>
 
           <li class="nav-item">
-            <label for="theme-switch" class="nav-link me-2">
-              <i class="fa fa-sun cursor-pointer opacity-6" id="theme-indicator"></i>
-              Theme
-            </label>
-            <input type="checkbox" class="d-none" id="theme-switch"/>
+            <button class="btn btn-sm bg-transparent text-body border-0 d-flex align-items-center" id="theme-toggle" style="padding: 8px 12px; background: transparent !important; box-shadow: none !important;">
+              <span id="theme-icon" aria-hidden="true" style="display:inline-flex; width:16px; height:16px;">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/></svg>
+              </span>
+            </button>
           </li>
 
         </ul>
@@ -45,3 +45,46 @@
     </div>
   </nav>
   <!-- End Navbar -->
+  
+  <script>
+  // Theme toggle for fullscreen navigation
+  document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('theme-toggle');
+      const themeIcon = document.getElementById('theme-icon');
+      const body = document.body;
+      
+      // Check for saved theme preference or default to light mode
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      
+      // Apply the saved theme
+      if (currentTheme === 'dark') {
+          body.classList.add('dark-version');
+          updateThemeButton(true);
+      } else {
+          updateThemeButton(false);
+      }
+      
+      // Toggle theme on button click
+      themeToggle.addEventListener('click', function() {
+          if (body.classList.contains('dark-version')) {
+              // Switch to light mode
+              body.classList.remove('dark-version');
+              localStorage.setItem('theme', 'light');
+              updateThemeButton(false);
+          } else {
+              // Switch to dark mode
+              body.classList.add('dark-version');
+              localStorage.setItem('theme', 'dark');
+              updateThemeButton(true);
+          }
+      });
+      
+      function updateThemeButton(isDark) {
+          if (isDark) {
+              themeIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zM1 13h3v-2H1v2zm10 10h2v-3h-2v3zm9-10v2h3v-2h-3zM17.66 6.64l1.79-1.8-1.41-1.41-1.8 1.79 1.42 1.42zM12 6a6 6 0 100 12 6 6 0 000-12zm7 13.66l-1.79-1.8-1.42 1.42 1.8 1.79 1.41-1.41zM4.24 17.66l-1.79 1.8 1.41 1.41 1.8-1.79-1.42-1.42z"/></svg>';
+          } else {
+              themeIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/></svg>';
+          }
+      }
+  });
+  </script>

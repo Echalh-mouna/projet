@@ -21,6 +21,11 @@ class Users(db.Model, UserMixin):
     email         = db.Column(db.String(64), unique=True)
     password      = db.Column(db.LargeBinary)
 
+    # Ajoute ces champs :
+    full_name     = db.Column(db.String(128))
+    mobile        = db.Column(db.String(32))
+    location      = db.Column(db.String(128))
+
     oauth_github  = db.Column(db.String(100), nullable=True)
 
     api_token     = db.Column(db.String(100))
@@ -58,4 +63,3 @@ def request_loader(request):
 class OAuth(OAuthConsumerMixin, db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("Users.id", ondelete="cascade"), nullable=False)
     user = db.relationship(Users)
-    

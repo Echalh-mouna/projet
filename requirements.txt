@@ -1,23 +1,59 @@
-flask==2.2.5
+# === FLASK FRONTEND & API ===
+Flask==2.2.5
 Werkzeug==2.3.7
-jinja2==3.1.2
+Jinja2==3.1.2
 flask-login==0.6.2
 flask_migrate==4.0.4
 WTForms==3.0.1
 flask_wtf==1.2.1
 flask-sqlalchemy==3.0.5
-sqlalchemy==2.0.21
+SQLAlchemy==2.0.21
 email_validator==2.0.0
 python-dotenv==0.19.2
 blinker==1.4
 WTForms-Alchemy==0.18.0
 flask-restx==1.0.3
-
-gunicorn==20.1.0
 Flask-Minify==0.37
+Flask-Cors==3.0.10
 
+# === AUTHENTICATION / DEPLOYMENT ===
 Flask-Dance==7.0.0
 PyJWT==2.4.0
+gunicorn==20.1.0
 
+# === MACHINE LEARNING / DEEP LEARNING ===
+numpy==1.26.4
 pandas==1.5.3
-scikit-learn==1.3.2
+scipy==1.15.2
+joblib==1.5.0
+scikit-learn==1.2.2
+xgboost==3.0.4
+lightgbm==4.6.0
+catboost==1.2.8
+imbalanced-learn==0.11.0
+
+# === DEEP LEARNING STACK ===
+tensorflow==2.16.2
+tensorflow-intel==2.16.2
+keras==3.11.2
+tensorboard==2.16.2
+h5py==3.14.0
+protobuf>=4.25.3,<5.0.0dev
+
+# === VISUALIZATION & ANALYTICS ===
+matplotlib==3.10.0
+seaborn==0.13.2
+plotly==5.24.1
+rich==13.9.4
+
+# === NETWORK ANALYSIS & FEATURE EXTRACTION ===
+scapy==2.6.1
+pyarrow==18.1.0
+shapely==2.0.6
+opencv-python==4.11.0.86
+mediapipe==0.10.21
+
+# === SYSTEM / MONITORING / UTILS ===
+watchdog==6.0.0
+typing-extensions==4.15.0
+requests==2.32.3
