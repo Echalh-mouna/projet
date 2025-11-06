@@ -1,0 +1,51 @@
+{% extends 'layouts/base-fullscreen.html' %}
+{% block title %} Résultats d’Analyse {% endblock title %}
+{% block content %}
+
+{% include 'includes/sidebar.html' %}
+<main class="main-content position-relative border-radius-lg">
+  {% include 'includes/navigation.html' %}
+
+  <div class="container-fluid py-4">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card login-card">
+          <div class="card-header login-header text-center">
+            <h4>Résultats de Prédiction</h4>
+          </div>
+          <div class="card-body text-center">
+            <p><strong>Modèle utilisé :</strong> {{ results.model }}</p>
+            <p><strong>Précision :</strong> {{ results.accuracy }}%</p>
+            <p><strong>Échantillons analysés :</strong> {{ results.total_samples }}</p>
+            <p><strong>Menaces détectées :</strong> {{ results.threat_count }}</p>
+
+            <h5 class="mt-4">📈 Types d’attaques détectées</h5>
+            <table class="table table-striped mt-3">
+              <thead>
+                <tr><th>Type</th><th>Nombre</th></tr>
+              </thead>
+              <tbody>
+                {% for atk in results.attacks %}
+                <tr>
+                  <td>{{ atk.type }}</td>
+                  <td>{{ atk.count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <div class="text-center mt-4">
+              <a href="{{ url_for('home_blueprint.upload') }}" class="btn btn-register">
+                🔁 Analyser un autre fichier
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include 'includes/footer.html' %}
+</main>
+{% endblock content %}
+{% include 'includes/scripts.html' %}

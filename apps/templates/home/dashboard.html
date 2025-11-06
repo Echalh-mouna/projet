@@ -1,0 +1,117 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Tableau de Bord - SafeNet IDS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER / BIENVENUE -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow border-0" style="background-color: #ffffff;">
+        <div class="card-body py-4 px-4">
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            <div>
+              <h3 class="fw-bold mb-1" style="color: #6a007d;">
+                Bienvenue, {{ current_user.full_name or current_user.username }}
+              </h3>
+              <p class="text-muted mb-0">
+                Vous êtes connecté à <strong>SafeNet IDS</strong> — votre plateforme de détection et d’analyse du trafic réseau.
+              </p>
+            </div>
+            <div class="text-md-end mt-3 mt-md-0">
+              <a href="/upload" class="btn text-white px-4" style="background: linear-gradient(135deg, #6a007d, #cb0c9f); border: none;">
+                Démarrer une analyse
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION À PROPOS + CARTES DROITES -->
+  <div class="row">
+    <!-- À propos du système -->
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3" style="color: #6a007d;">À propos du système</h5>
+          <p>
+            <strong>SafeNet IDS</strong> est une solution de détection d’intrusions basée sur l’analyse du trafic réseau et l’intelligence artificielle.
+            Le système identifie les comportements anormaux, détecte les attaques connues et classifie le trafic selon plusieurs catégories.
+          </p>
+          <ul class="text-muted">
+            <li>Détection d’attaques DDoS et DoS</li>
+            <li>Analyse de scans de ports et tentatives d’intrusion</li>
+            <li>Identification d’activités malveillantes et de botnets</li>
+            <li>Classification du trafic normal</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLONNE DE DROITE -->
+    <div class="col-lg-4 mb-4 d-flex flex-column justify-content-between">
+      <!-- Jeux de données utilisés -->
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3" style="color: #6a007d;">Jeux de données utilisés</h5>
+          <ul class="list-unstyled text-muted mb-0">
+            <li>CICIDS 2017</li>
+            <li>NSL-KDD</li>
+            <li>UNSW-NB15</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Modèles et précisions -->
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3" style="color: #6a007d;">Modèles et précisions</h5>
+          <ul class="list-unstyled text-muted small mb-0">
+            <li><strong style="color:#6a007d;">Ensemble :</strong> {{ accuracies.ensemble }}%</li>
+            <li><strong style="color:#6a007d;">XGBoost :</strong> {{ accuracies.xgb }}%</li>
+            <li><strong style="color:#6a007d;">Random Forest :</strong> {{ accuracies.rf }}%</li>
+            <li><strong style="color:#6a007d;">DNN :</strong> {{ accuracies.dnn }}%</li>
+            <li><strong style="color:#6a007d;">CNN :</strong> {{ accuracies.cnn }}%</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROCESSUS & CARACTÉRISTIQUES -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3" style="color: #6a007d;">Processus d’analyse</h5>
+          <ol class="text-muted mb-0">
+            <li>Capture du trafic réseau (fichier PCAP)</li>
+            <li>Téléversement et préparation des données</li>
+            <li>Sélection du modèle de détection</li>
+            <li>Exécution de l’analyse</li>
+            <li>Consultation des résultats et rapports</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3" style="color: #6a007d;">Caractéristiques extraites</h5>
+          <ul class="text-muted mb-0">
+            <li>Durée et volume des flux</li>
+            <li>Comptage de paquets et taux de transfert</li>
+            <li>Distribution des tailles de paquets</li>
+            <li>Temps inter-arrivées</li>
+            <li>Informations sur les protocoles et ports</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock content %}

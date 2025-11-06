@@ -1,1003 +1,359 @@
-{% extends "layouts/base.html" %}
-
-{% block title %} Analyse de Fichiers {% endblock %}
-
-{% block page_name %}Analyse de Fichiers{% endblock %}
+{% extends 'layouts/base-fullscreen.html' %}
+{% block title %}Analyse de trafic réseau - SafeNet IDS{% endblock title %}
 
 {% block stylesheets %}
+<!-- Mode sombre - Styles complets pour upload.html -->
 <style>
-  /* Thème cohérent avec l'application SafeNet */
-  .model-info-card {
-    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%);
-    color: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(106, 0, 125, 0.3);
-  }
-  
-  .model-info-card .card-body {
-    padding: 2rem;
-  }
-  
-  .model-stats {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    padding: 1.5rem;
-    backdrop-filter: blur(10px);
-  }
-  
-  .upload-area {
-    border: 2px dashed #cb0c9f;
-    border-radius: 16px;
-    padding: 3rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%);
-    color: white;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .upload-area::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 0.6s;
-  }
-  
-  .upload-area:hover::before {
-    transform: translateX(100%);
-  }
-  
-  .upload-area:hover {
-    border-color: #cb0c9f;
-    background: linear-gradient(135deg, #cb0c9f 0%, #17c1e8 100%);
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(203, 12, 159, 0.3);
-  }
-  
-  .upload-area.dragover {
-    border-color: #82d616;
-    background: linear-gradient(135deg, #82d616 0%, #17c1e8 100%);
-    transform: scale(1.02);
-  }
-  
-  .file-input {
-    display: none;
-  }
-  
-  .upload-icon {
-    font-size: 4rem;
-    margin-bottom: 1.5rem;
-    opacity: 0.9;
-    text-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  }
-  
-  .progress-container {
-    display: none;
-    margin-top: 2rem;
-  }
-  
-  .file-preview {
-    margin-top: 2rem;
-    padding: 2rem;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 16px;
-    display: none;
-    border: 1px solid #dee2e6;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  }
-  
-  .feature-preview {
-    max-height: 400px;
-    overflow-y: auto;
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-top: 1.5rem;
-    color: #344767;
-    border: 1px solid #e9ecef;
-  }
-  
-  .feature-preview h6 {
-    color: white !important;
-  }
-  
-  /* Titres principaux en blanc */
-  /* Seuls les titres avec arrière-plans colorés sont en blanc */
-  .model-info-card h3,
-  .model-info-card h4,
-  .model-info-card h5,
-  .model-info-card h6,
-  .upload-area h3,
-  .upload-area h4,
-  .upload-area h5,
-  .upload-area h6 {
-    color: white !important;
-  }
-  
-  /* Les titres dans les sections avec fond blanc restent sombres */
-  .preprocessing-section h3,
-  .preprocessing-section h4,
-  .preprocessing-section h5,
-  .preprocessing-section h6,
-  .prediction-section h3,
-  .prediction-section h4,
-  .prediction-section h5,
-  .prediction-section h6,
-  .class-distribution h3,
-  .class-distribution h4,
-  .class-distribution h5,
-  .class-distribution h6,
-  .chart-container h3,
-  .chart-container h4,
-  .chart-container h5,
-  .chart-container h6 {
-    color: #344767 !important;
-  }
-  
-  .btn-upload {
-    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%);
-    border: none;
-    border-radius: 12px;
-    padding: 15px 35px;
-    color: white;
-    font-weight: 600;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(106, 0, 125, 0.3);
-  }
-  
-  .btn-upload:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px rgba(106, 0, 125, 0.4);
-    background: linear-gradient(135deg, #cb0c9f 0%, #6a007d 100%);
-  }
-  
-  .btn-analyze {
-    background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%);
-    border: none;
-    border-radius: 12px;
-    padding: 15px 35px;
-    color: white;
-    font-weight: 600;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(106, 0, 125, 0.3);
-  }
-  
-  .btn-analyze:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px rgba(106, 0, 125, 0.4);
-    background: linear-gradient(135deg, #cb0c9f 0%, #6a007d 100%);
-  }
-  
-  .preprocessing-section {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 16px;
-    padding: 2rem;
-    margin-top: 2rem;
-    border: 1px solid #dee2e6;
-    display: none;
-  }
-  
-  .prediction-section {
-    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-    border-radius: 16px;
-    padding: 2rem;
-    margin-top: 2rem;
-    border: 1px solid #dee2e6;
-    display: none;
-  }
-  
-  .class-distribution {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-top: 1.5rem;
-    border: 1px solid #e9ecef;
-  }
-  
-  .accuracy-badge {
-    background: linear-gradient(135deg, #82d616 0%, #17c1e8 100%);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 1.1rem;
-  }
-  
-  .model-type-badge {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 0.3rem 0.8rem;
-    border-radius: 15px;
-    font-size: 0.9rem;
-    margin: 0.2rem;
-    display: inline-block;
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-  }
-  
-  .stat-item {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1.5rem;
-    border-radius: 12px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-  }
-  
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  
-  .stat-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-  }
-  
-  .icon.icon-shape {
-  width: 40px;
-  height: 40px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  padding: 0;
-}
-.icon.icon-shape i,
-.icon.icon-shape svg {
-  font-size: 1.5rem !important;
-  width: 1.5em;
-  height: 1.5em;
-  margin: 0;
-  display: block;
-}
-  
-  /* Dark mode overrides */
-  body.dark-version .file-preview {
-    background: #404B69 !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
-  }
-  
-  body.dark-version .feature-preview {
-    background: #283149 !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-  }
-  
-  body.dark-version .preprocessing-section {
-    background: #404B69 !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
-  }
-  
-  body.dark-version .prediction-section {
-    background: #404B69 !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
-  }
-  
-  body.dark-version .class-distribution {
-    background: #404B69 !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-  }
-  
-  body.dark-version .preprocessing-section h3,
-  body.dark-version .preprocessing-section h4,
-  body.dark-version .preprocessing-section h5,
-  body.dark-version .preprocessing-section h6,
-  body.dark-version .prediction-section h3,
-  body.dark-version .prediction-section h4,
-  body.dark-version .prediction-section h5,
-  body.dark-version .prediction-section h6,
-  body.dark-version .class-distribution h3,
-  body.dark-version .class-distribution h4,
-  body.dark-version .class-distribution h5,
-  body.dark-version .class-distribution h6 {
+  /* Mode sombre - Body et background */
+  body.dark-version {
+    background: #1a1f2e !important;
     color: #ffffff !important;
   }
-  
+
+  body.dark-version .main-content {
+    background: #1a1f2e !important;
+  }
+
+  /* Mode sombre - Cards - Surcharge des styles inline */
+  body.dark-version .card {
+    background-color: #404B69 !important;
+    color: #f8f9fa !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+
+  body.dark-version .card[style*="background-color: var(--bs-body-bg)"] {
+    background-color: #404B69 !important;
+  }
+
+  body.dark-version .card[style*="color: var(--bs-body-color)"] {
+    color: #f8f9fa !important;
+  }
+
   body.dark-version .card-header {
-    background: #404B69 !important;
+    background: linear-gradient(135deg, #6a007d, #cb0c9f) !important;
     border-bottom: 1px solid rgba(255,255,255,0.1) !important;
   }
-  
-  body.dark-version .card-header h6,
-  body.dark-version .card-header i,
-  body.dark-version .card-header .ni {
+
+  /* Mode sombre - Form controls - Surcharge des styles inline */
+  body.dark-version .form-control {
+    background-color: #283149 !important;
+    color: #f1f1f1 !important;
+    border-color: rgba(255,255,255,0.2) !important;
+  }
+
+  body.dark-version .form-control[style*="background-color: var(--bs-body-bg)"] {
+    background-color: #283149 !important;
+  }
+
+  body.dark-version .form-control[style*="color: var(--bs-body-color)"] {
+    color: #f1f1f1 !important;
+  }
+
+  body.dark-version .form-control:focus {
+    background-color: #283149 !important;
+    color: #f1f1f1 !important;
+    border-color: #6a007d !important;
+    box-shadow: 0 0 0 0.2rem rgba(106, 0, 125, 0.25) !important;
+  }
+
+  body.dark-version select.form-control {
+    background-color: #283149 !important;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='20' height='20'><path d='M7 10l5 5 5-5z'/></svg>") !important;
+    color: #f1f1f1 !important;
+  }
+
+  body.dark-version select.form-control option {
+    background-color: #283149 !important;
+    color: #f1f1f1 !important;
+  }
+
+  /* Mode sombre - Text */
+  body.dark-version small.text-muted {
+    color: rgba(255,255,255,0.6) !important;
+  }
+
+  body.dark-version .text-muted {
+    color: rgba(255,255,255,0.7) !important;
+  }
+
+  body.dark-version ol.text-muted li,
+  body.dark-version ul.text-muted li {
+    color: rgba(255,255,255,0.7) !important;
+  }
+
+  /* Mode sombre - Headings et labels */
+  body.dark-version h4,
+  body.dark-version h5,
+  body.dark-version label,
+  body.dark-version .fw-bold {
     color: #ffffff !important;
   }
-  
-  body.dark-version .card-header .icon {
-    background: rgba(255,255,255,0.1) !important;
+
+  body.dark-version h5[style*="color: #6a007d"] {
+    color: #cb0c9f !important;
   }
-  
-  body.dark-version .card-header .icon i {
+
+  body.dark-version p {
+    color: rgba(255,255,255,0.9) !important;
+  }
+
+  body.dark-version p[style*="color: var(--bs-body-color)"] {
+    color: rgba(255,255,255,0.9) !important;
+  }
+
+  /* Mode sombre - Container */
+  body.dark-version .container-fluid {
+    background: transparent !important;
+  }
+
+  /* Mode sombre - Navigation */
+  body.dark-version .navbar,
+  body.dark-version .navbar-main {
+    background: rgba(26, 31, 46, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+  }
+
+  body.dark-version .navbar[style*="background: rgba(255,255,255,0.95)"] {
+    background: rgba(26, 31, 46, 0.95) !important;
+  }
+
+  /* Mode sombre - Breadcrumb */
+  body.dark-version .breadcrumb {
+    background: transparent !important;
+  }
+
+  body.dark-version .breadcrumb-item a {
+    color: #cb0c9f !important;
+  }
+
+  body.dark-version .breadcrumb-item a[style*="color: #6a007d"] {
+    color: #cb0c9f !important;
+  }
+
+  body.dark-version .breadcrumb-item.active,
+  body.dark-version .breadcrumb-item {
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  body.dark-version .breadcrumb-item.active[style*="color: #344767"],
+  body.dark-version .breadcrumb-item[style*="color: #344767"] {
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  /* Mode sombre - Navbar buttons et icons */
+  body.dark-version .nav-link,
+  body.dark-version .btn.text-body {
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  body.dark-version #theme-toggle,
+  body.dark-version #theme-toggle svg {
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  body.dark-version #theme-toggle:hover {
     color: #ffffff !important;
-    opacity: 1 !important;
+  }
+
+  body.dark-version .sidenav-toggler-inner,
+  body.dark-version .sidenav-toggler-line {
+    background-color: rgba(255,255,255,0.8) !important;
+  }
+
+  body.dark-version .sidenav-toggler-inner:hover .sidenav-toggler-line {
+    background-color: #ffffff !important;
+  }
+
+  /* Mode sombre - Navbar text */
+  body.dark-version .navbar-nav .nav-link {
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  body.dark-version .navbar-nav .nav-link:hover {
+    color: #ffffff !important;
   }
 </style>
 {% endblock stylesheets %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header pb-0">
-          <div class="d-flex align-items-center">
-            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-cloud-upload-96 text-dark text-sm opacity-10"></i>
-            </div>
-            <h6 class="mb-0">Analyse de Fichiers CSV</h6>
+{% include 'includes/sidebar.html' %}
+
+<main class="main-content position-relative border-radius-lg">
+  {% include 'includes/navigation.html' %}
+
+  <div class="container-fluid py-4">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card shadow border-0"
+             style="background-color: var(--bs-body-bg); color: var(--bs-body-color);">
+          
+          <!-- EN-TÊTE -->
+          <div class="card-header text-center"
+               style="background: linear-gradient(135deg, #6a007d, #cb0c9f);">
+            <h4 class="mb-0 fw-bold" style="color: rgba(255,255,255,0.95);">
+              Analyse de fichiers réseau – Lancement d’une détection
+            </h4>
           </div>
-        </div>
-        <div class="card-body">
-          <!-- Informations du modèle d'ensemble -->
-          <div class="model-info-card mb-4">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-md-8">
-                  <h4 class="mb-3">
-                    <i class="ni ni-settings-gear-99 me-2"></i>
-                    Modèle d'Ensemble IDS Intelligent
-                  </h4>
-                  <p class="mb-3 opacity-8">
-                    Système de détection d'intrusions utilisant un ensemble de modèles de deep learning et machine learning pour une précision maximale.
-                  </p>
-                  
-                  <div class="model-stats">
-              <div class="row">
-                <div class="col-md-6">
-                        <h6 class="mb-3">Modèles Utilisés</h6>
-                        <div class="mb-3">
-                          <span class="model-type-badge">CNN (Convolutional Neural Network)</span>
-                          <span class="model-type-badge">DNN (Deep Neural Network)</span>
-                        </div>
-                        <div class="mb-3">
-                          <span class="model-type-badge">LightGBM Pipeline</span>
-                          <span class="model-type-badge">Isolation Forest</span>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <h6 class="mb-3">Performance</h6>
-                        <div class="stats-grid">
-                          <div class="stat-item">
-                            <div class="stat-value" id="model-accuracy">98.71%</div>
-                            <div class="stat-label">Précision</div>
-                          </div>
-                          <div class="stat-item">
-                            <div class="stat-value">15</div>
-                            <div class="stat-label">Classes d'Attaques</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4 text-center">
-                  <div class="accuracy-badge mb-3">
-                    <i class="ni ni-chart-bar-32 me-2"></i>
-                    Précision: <span id="model-accuracy-display">98.71%</span>
-                  </div>
-                  <p class="text-sm opacity-8 mb-0">
-                    Basé sur le dataset CICIDS2017
-                  </p>
+
+          <!-- CORPS -->
+          <div class="card-body px-5 py-4">
+            <p class="mb-4" style="color: var(--bs-body-color);">
+              Importez un fichier de trafic réseau pour lancer une analyse. 
+              Le système analysera automatiquement les flux et détectera les comportements anormaux 
+              à l’aide du modèle de prédiction sélectionné.
+            </p>
+
+            <!-- FORMULAIRE -->
+            <form id="uploadForm" method="POST" enctype="multipart/form-data"
+                  action="{{ url_for('home_blueprint.upload_file') }}">
+              
+              <!-- Modèle de prédiction -->
+              <div class="mb-3">
+                <label for="model" class="label-theme fw-bold" style="color: #6a007d;">Modèle de prédiction :</label>
+                <div class="input-group">
+                  <select name="model" id="model" class="form-control"
+                          style="appearance: none;
+                                 background-color: var(--bs-body-bg);
+                                 color: var(--bs-body-color);
+                                 border: 1px solid rgba(0,0,0,0.1);
+                                 background-image: url('data:image/svg+xml;utf8,<svg fill=\'%236a007d\' xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' width=\'20\' height=\'20\'><path d=\'M7 10l5 5 5-5z\'/></svg>');
+                                 background-repeat: no-repeat;
+                                 background-position: right 1rem center;
+                                 background-size: 1em;
+                                 padding-right: 2.5rem;">
+                    <option value="ensemble">Ensemble – Best Hybrid Model</option>
+                    <option value="xgb">XGBoost – Gradient Boosting</option>
+                    <option value="rf">Random Forest – Forest Classifier</option>
+                    <option value="dnn">DNN – Deep Neural Network</option>
+                    <option value="cnn">CNN – Convolutional Neural Network</option>
+                  </select>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Zone d'upload -->
-          <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">
-              <i class="ni ni-cloud-upload-96"></i>
-            </div>
-            <h3 class="mb-3" style="color: white;">Glissez-déposez votre fichier CSV ici</h3>
-            <p class="mb-3" style="color: white;">Le fichier CSV doit contenir des colonnes de features pour l'analyse de détection d'anomalies</p>
-            <p class="mb-3" style="color: white;">Format accepté : .csv uniquement | Taille maximale : 10 MB</p>
-            <p class="mb-4" style="color: white;">La première ligne doit contenir les noms des colonnes</p>
-            <input type="file" id="fileInput" class="file-input" accept=".csv" />
-            <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">
-              <i class="ni ni-cloud-upload-96 me-2"></i>Sélectionner un fichier CSV
-            </button>
-          </div>
+              <!-- Fichier à analyser -->
+              <div class="mb-3">
+                <label for="file" class="label-theme fw-bold" style="color: #6a007d;">Fichier à analyser :</label>
+                <input type="file" name="file" id="file" class="form-control"
+                       accept=".csv,.pcap,.pcapng" required>
+                <small class="text-muted">Formats acceptés : .csv, .pcap, .pcapng</small>
+              </div>
 
-          <!-- Barre de progression -->
-          <div class="progress-container" id="progressContainer">
-            <div class="progress">
-              <div class="progress-bar" role="progressbar" style="width: 0%" id="progressBar"></div>
-            </div>
-            <p class="text-center mt-2" id="progressText">Upload en cours...</p>
-          </div>
-
-          <!-- Aperçu du fichier -->
-          <div class="file-preview" id="filePreview">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="mb-0">
-                <i class="ni ni-single-copy-04 me-2"></i>Fichier sélectionné
-              </h5>
-              <button class="btn btn-sm btn-outline-danger" onclick="clearFile()">
-                <i class="ni ni-fat-remove"></i>
-              </button>
-            </div>
-            <div id="fileInfo"></div>
-            <div class="feature-preview" id="featurePreview"></div>
-            <div class="text-center mt-4">
-              <button class="btn btn-analyze" onclick="analyzeData()">
-                <i class="ni ni-chart-bar-32 me-2"></i>Analyser avec les modèles IDS
-              </button>
-            </div>
-          </div>
-
-          <!-- Section de prétraitement -->
-          <div class="preprocessing-section" id="preprocessingSection">
-            <div class="d-flex align-items-center mb-3">
-              <div class="icon icon-shape icon-sm shadow border-radius-md bg-gradient-info text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="ni ni-settings-gear-99 text-white text-sm opacity-10"></i>
+              <!-- Bouton -->
+              <div class="text-center mt-4">
+                <button type="submit" class="btn text-white px-5 fw-bold"
+                        style="background: linear-gradient(135deg, #6a007d, #cb0c9f); border: none;">
+                  Lancer l’analyse
+                </button>
               </div>
-              <h5 class="mb-0">Prétraitement des Données</h5>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h6 class="mb-3">Données Originales</h6>
-                <div id="originalDataPreview" class="feature-preview"></div>
-              </div>
-              <div class="col-md-6">
-                <h6 class="mb-3">Données Normalisées (MinMaxScaler)</h6>
-                <div id="preprocessedDataPreview" class="feature-preview"></div>
-              </div>
-            </div>
-            <div class="mt-3">
-              <div class="alert alert-info text-white">
-                <i class="ni ni-info-circle me-2" style="color: white;"></i>
-                <strong>Prétraitement appliqué :</strong> Normalisation MinMax (0-1) avec le scaler entraîné sur CICIDS2017
-              </div>
-            </div>
-          </div>
-
-          <!-- Section de prédiction -->
-          <div class="prediction-section" id="predictionSection">
-            <div class="d-flex align-items-center mb-3">
-              <div class="icon icon-shape icon-sm shadow border-radius-md bg-gradient-success text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="ni ni-chart-bar-32 text-white text-sm opacity-10"></i>
-              </div>
-              <h5 class="mb-0">Prédictions des Modèles d'Ensemble</h5>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h6 class="mb-3">Résultats par Modèle</h6>
-                <div id="modelPredictions" class="feature-preview"></div>
-              </div>
-              <div class="col-md-6">
-                <h6 class="mb-3">Prédiction Finale (Vote Majoritaire)</h6>
-                <div id="finalPrediction" class="feature-preview"></div>
-              </div>
-            </div>
-            <div class="mt-3">
-              <div class="alert alert-success text-white" style="background: linear-gradient(135deg, #82d616 0%, #17c1e8 100%); border: none;">
-    <i class="ni ni-check-circle me-2" style="color: white;"></i>
-    <strong>Analyse terminée :</strong> Les prédictions ont été générées par l'ensemble des modèles CNN, DNN, LightGBM et Isolation Forest
-  </div>
-            </div>
-          </div>
-
-          <!-- Visualisation de la répartition des classes -->
-          <div class="class-distribution" id="classDistributionSection" style="display: none;">
-            <h5 class="mb-3">
-              <i class="ni ni-chart-pie-35 me-2"></i>
-              Répartition des Classes de Résultats
-            </h5>
-            <div class="row">
-              <div class="col-md-8">
-                <div id="classDistributionChart" style="height: 400px;"></div>
-              </div>
-              <div class="col-md-4">
-                <h6 class="mb-3">Statistiques</h6>
-                <div id="classStats"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Instructions -->
-          <div class="mt-4">
-            <div class="alert alert-info" style="background: linear-gradient(135deg, #6a007d 0%, #cb0c9f 100%); border: none; color: white;">
-              <h6 class="alert-heading" style="color: white;">
-                <i class="ni ni-bulb-61 me-2" style="color: white;"></i>Instructions
-              </h6>
-              <ul class="mb-0" style="color: white;">
-                <li>Le fichier CSV doit contenir des colonnes de features pour l'analyse de détection d'anomalies</li>
-                <li>Format accepté : .csv uniquement</li>
-                <li>Taille maximale : 10 MB</li>
-                <li>La première ligne doit contenir les noms des colonnes</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Mode démonstration -->
-          <div class="mt-3" id="demoModeAlert" style="display: none;">
-            <div class="alert alert-warning">
-              <h6 class="alert-heading">
-                <i class="ni ni-notification-70 me-2"></i>Mode Démonstration
-              </h6>
-              <p class="mb-2">Les modèles d'ensemble ne sont pas encore chargés. L'analyse fonctionne en mode démonstration avec des prédictions simulées.</p>
-              <p class="mb-0">
-                <strong>Pour activer les vrais modèles :</strong> Exécutez <code>python cdpl41.py</code> pour générer les modèles d'entraînement.
-              </p>
-            </div>
+            </form>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- SECTIONS D’INFORMATION -->
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100"
+             style="background-color: var(--bs-body-bg); color: var(--bs-body-color);">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3" style="color: #6a007d;">Comment utiliser cette section</h5>
+            <ol class="text-muted">
+              <li>Capturez le trafic réseau (fichier PCAP ou CSV)</li>
+              <li>Importez le fichier dans SafeNet IDS</li>
+              <li>Sélectionnez le modèle d’analyse approprié</li>
+              <li>Cliquez sur “Lancer l’analyse”</li>
+              <li>Consultez les résultats et visualisez les prédictions</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100"
+             style="background-color: var(--bs-body-bg); color: var(--bs-body-color);">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3" style="color: #6a007d;">Caractéristiques extraites</h5>
+            <ul class="text-muted mb-0">
+              <li>Durée et volume des flux</li>
+              <li>Comptage de paquets et débits de transfert</li>
+              <li>Distribution des tailles de paquets</li>
+              <li>Temps inter-arrivées</li>
+              <li>Protocole et ports utilisés</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
-</div>
+
+  {% include 'includes/footer.html' %}
+</main>
 {% endblock content %}
+{% include 'includes/scripts.html' %}
 
 {% block javascripts %}
+<!-- Script de gestion du mode sombre - Optimisé pour performance -->
 <script>
-// Charger la précision du modèle au chargement de la page
-document.addEventListener('DOMContentLoaded', function() {
-  // Charger les informations du modèle
-  fetch('/get-model-info')
-    .then(response => response.json())
-    .then(data => {
-      if (data.accuracy) {
-        document.getElementById('model-accuracy').textContent = data.accuracy + '%';
-      }
-    })
-    .catch(error => {
-      console.error('Erreur lors du chargement des informations du modèle:', error);
-      document.getElementById('model-accuracy').textContent = '95.0%';
-    });
-});
-</script>
-
-<script>
-let uploadedFile = null;
-let csvData = null;
-
-// Gestion du drag & drop
-const uploadArea = document.getElementById('uploadArea');
-const fileInput = document.getElementById('fileInput');
-const progressContainer = document.getElementById('progressContainer');
-const filePreview = document.getElementById('filePreview');
-const fileInfo = document.getElementById('fileInfo');
-const featurePreview = document.getElementById('featurePreview');
-
-uploadArea.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  uploadArea.classList.add('dragover');
-});
-
-uploadArea.addEventListener('dragleave', () => {
-  uploadArea.classList.remove('dragover');
-});
-
-uploadArea.addEventListener('drop', (e) => {
-  e.preventDefault();
-  uploadArea.classList.remove('dragover');
-  const files = e.dataTransfer.files;
-  if (files.length > 0) {
-    handleFile(files[0]);
-  }
-});
-
-fileInput.addEventListener('change', (e) => {
-  if (e.target.files.length > 0) {
-    handleFile(e.target.files[0]);
-  }
-});
-
-function handleFile(file) {
-  if (!file.name.toLowerCase().endsWith('.csv')) {
-    alert('Veuillez sélectionner un fichier CSV');
-    return;
-  }
+(function() {
+  'use strict';
   
-  if (file.size > 10 * 1024 * 1024) {
-    alert('Le fichier est trop volumineux (max 10 MB)');
-    return;
-  }
-  
-  uploadedFile = file;
-  showProgress();
-  
-  // Simuler l'upload
-  setTimeout(() => {
-    hideProgress();
-    showFilePreview();
-    loadCSVPreview(file);
-  }, 1500);
-}
-
-function showProgress() {
-  progressContainer.style.display = 'block';
-  filePreview.style.display = 'none';
-  
-  let progress = 0;
-  const progressBar = document.getElementById('progressBar');
-  const progressText = document.getElementById('progressText');
-  
-  const interval = setInterval(() => {
-    progress += Math.random() * 30;
-    if (progress > 100) progress = 100;
-    
-    progressBar.style.width = progress + '%';
-    
-    if (progress >= 100) {
-      clearInterval(interval);
-      progressText.textContent = 'Upload terminé !';
-    }
-  }, 200);
-}
-
-function hideProgress() {
-  progressContainer.style.display = 'none';
-}
-
-function showFilePreview() {
-  filePreview.style.display = 'block';
-  fileInfo.innerHTML = `
-    <div class="d-flex align-items-center">
-      <i class="ni ni-single-copy-04 me-2 text-primary"></i>
-      <div>
-        <strong>${uploadedFile.name}</strong><br>
-        <small class="text-muted">${(uploadedFile.size / 1024).toFixed(1)} KB</small>
-      </div>
-    </div>
-  `;
-}
-
-function loadCSVPreview(file) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const text = e.target.result;
-    const lines = text.split('\n').slice(0, 6); // Premières 6 lignes
-    const headers = lines[0].split(',');
-    
-    let tableHTML = '<table class="table table-sm">';
-    tableHTML += '<thead><tr>';
-    headers.forEach(header => {
-      tableHTML += `<th>${header.trim()}</th>`;
-    });
-    tableHTML += '</tr></thead><tbody>';
-    
-    for (let i = 1; i < lines.length && i < 6; i++) {
-      if (lines[i].trim()) {
-        tableHTML += '<tr>';
-        const values = lines[i].split(',');
-        values.forEach(value => {
-          tableHTML += `<td>${value.trim()}</td>`;
-        });
-        tableHTML += '</tr>';
-      }
-    }
-    tableHTML += '</tbody></table>';
-    
-    featurePreview.innerHTML = tableHTML;
-  };
-  reader.readAsText(file);
-}
-
-function clearFile() {
-  uploadedFile = null;
-  filePreview.style.display = 'none';
-  fileInput.value = '';
-  featurePreview.innerHTML = '';
-}
-
-function analyzeData() {
-  if (!uploadedFile) {
-    alert('Veuillez d\'abord sélectionner un fichier');
-    return;
-  }
-  
-  // Afficher un indicateur de chargement
-  const analyzeBtn = document.querySelector('.btn-analyze');
-  const originalText = analyzeBtn.innerHTML;
-  analyzeBtn.innerHTML = '<i class="ni ni-loading me-2"></i>Analyse en cours...';
-  analyzeBtn.disabled = true;
-  
-  // Créer FormData pour l'upload
-  const formData = new FormData();
-  formData.append('file', uploadedFile);
-  
-  // Upload du fichier
-  fetch('/upload-file', {
-    method: 'POST',
-    body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      // Lancer l'analyse
-      return fetch('/analyze-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+  // Fonction pour appliquer le thème (sans reflow forcé)
+  function applyTheme(isDark) {
+    if (isDark) {
+      document.body.classList.add('dark-version');
     } else {
-      throw new Error(data.error || 'Erreur lors de l\'upload');
-    }
-  })
-  .then(response => response.json())
-  .then(analysisData => {
-    if (analysisData.success) {
-      // Afficher les résultats
-      displayAnalysisResults(analysisData.results);
-    } else {
-      throw new Error(analysisData.error || 'Erreur lors de l\'analyse');
-    }
-  })
-  .catch(error => {
-    console.error('Erreur:', error);
-    alert('Erreur lors de l\'analyse: ' + error.message);
-  })
-  .finally(() => {
-    // Restaurer le bouton
-    analyzeBtn.innerHTML = originalText;
-    analyzeBtn.disabled = false;
-  });
-}
-
-function displayAnalysisResults(results) {
-  // Vérifier si c'est le mode démonstration
-  const isDemoMode = results.demo_mode || false;
-  
-  // Afficher la section de prétraitement
-  showPreprocessingSection(results.preprocessed_data);
-  
-  // Afficher la section de prédiction
-  showPredictionSection(results.predictions, isDemoMode);
-  
-  // Afficher la visualisation des classes
-  showClassDistribution(results.class_distribution);
-  
-  // Afficher les résultats finaux
-  const resultsHTML = `
-    <div class="card mt-4">
-      <div class="card-header">
-        <h6 class="mb-0">
-          <i class="ni ni-chart-bar-32 me-2"></i>Résultats de l'Analyse IDS
-          ${isDemoMode ? '<span class="badge bg-warning ms-2">Mode Démo</span>' : ''}
-        </h6>
-      </div>
-      <div class="card-body">
-        ${isDemoMode ? `
-          <div class="alert alert-warning mb-3">
-            <i class="ni ni-notification-70 me-2"></i>
-            <strong>Mode Démonstration :</strong> Ces résultats sont simulés. Pour des prédictions réelles, exécutez <code>python cdpl41.py</code> pour générer les modèles.
-          </div>
-        ` : ''}
-        
-        <div class="row">
-          <div class="col-md-6">
-            <h6>Statistiques Générales</h6>
-            <ul class="list-unstyled">
-              <li><strong>Total d'échantillons:</strong> ${results.total_samples || 'N/A'}</li>
-              <li><strong>Anomalies détectées:</strong> ${results.anomaly_count || 'N/A'}</li>
-              <li><strong>Pourcentage d'anomalies:</strong> ${results.anomaly_percentage || 'N/A'}%</li>
-            </ul>
-          </div>
-          <div class="col-md-6">
-            <h6>Performance des Modèles</h6>
-            <ul class="list-unstyled">
-              <li><strong>CNN:</strong> 96.13%</li>
-              <li><strong>DNN:</strong> 97.87%</li>
-              <li><strong>LightGBM:</strong> 98.78%</li>
-              <li><strong>Ensemble:</strong> 98.71%</li>
-            </ul>
-          </div>
-        </div>
-        
-        <div class="mt-3">
-          <h6>Actions</h6>
-          <button class="btn btn-primary me-2" onclick="viewDetailedResults()">
-            <i class="ni ni-zoom-split-in me-2"></i>Voir les détails
-          </button>
-          <button class="btn btn-success" onclick="goToDashboard()">
-            <i class="ni ni-chart-bar-32 me-2"></i>Aller au Tableau de Bord
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Ajouter les résultats à la page
-  const existingResults = document.getElementById('analysisResults');
-  if (existingResults) {
-    existingResults.remove();
-  }
-  
-  const resultsDiv = document.createElement('div');
-  resultsDiv.id = 'analysisResults';
-  resultsDiv.innerHTML = resultsHTML;
-  document.querySelector('.card-body').appendChild(resultsDiv);
-  
-  // Faire défiler vers les résultats
-  resultsDiv.scrollIntoView({ behavior: 'smooth' });
-}
-
-function showPreprocessingSection(preprocessedData) {
-  const preprocessingSection = document.getElementById('preprocessingSection');
-  if (preprocessingSection && preprocessedData) {
-    preprocessingSection.style.display = 'block';
-    
-    // Afficher les données originales
-    const originalPreview = document.getElementById('originalDataPreview');
-    if (originalPreview) {
-      originalPreview.innerHTML = createDataTable(preprocessedData.original || []);
-    }
-    
-    // Afficher les données prétraitées
-    const preprocessedPreview = document.getElementById('preprocessedDataPreview');
-    if (preprocessedPreview) {
-      preprocessedPreview.innerHTML = createDataTable(preprocessedData.normalized || []);
+      document.body.classList.remove('dark-version');
     }
   }
-}
 
-function showPredictionSection(predictions, isDemoMode) {
-  const predictionSection = document.getElementById('predictionSection');
-  if (predictionSection && predictions) {
-    predictionSection.style.display = 'block';
-    
-    // Afficher les prédictions par modèle
-    const modelPredictions = document.getElementById('modelPredictions');
-    if (modelPredictions) {
-      let predictionsHTML = '<table class="table table-sm">';
-      predictionsHTML += '<thead><tr><th>Modèle</th><th>Prédiction</th><th>Confiance</th></tr></thead><tbody>';
-      
-      if (predictions.cnn) {
-        predictionsHTML += `<tr><td>CNN</td><td>${predictions.cnn.class}</td><td>${predictions.cnn.confidence}%</td></tr>`;
-      }
-      if (predictions.dnn) {
-        predictionsHTML += `<tr><td>DNN</td><td>${predictions.dnn.class}</td><td>${predictions.dnn.confidence}%</td></tr>`;
-      }
-      if (predictions.lightgbm) {
-        predictionsHTML += `<tr><td>LightGBM</td><td>${predictions.lightgbm.class}</td><td>${predictions.lightgbm.confidence}%</td></tr>`;
-      }
-      if (predictions.isolation_forest) {
-        predictionsHTML += `<tr><td>Isolation Forest</td><td>${predictions.isolation_forest.anomaly ? 'Anomalie' : 'Normal'}</td><td>${predictions.isolation_forest.score}</td></tr>`;
-      }
-      
-      predictionsHTML += '</tbody></table>';
-      modelPredictions.innerHTML = predictionsHTML;
-    }
-    
-    // Afficher la prédiction finale
-    const finalPrediction = document.getElementById('finalPrediction');
-    if (finalPrediction && predictions.final) {
-      const finalHTML = `
-        <div class="text-center">
-          <h4 class="text-${predictions.final.is_anomaly ? 'danger' : 'success'}">
-            ${predictions.final.is_anomaly ? '⚠️ ANOMALIE DÉTECTÉE' : '✅ TRAFIC NORMAL'}
-          </h4>
-          <p class="mb-2"><strong>Classe prédite:</strong> ${predictions.final.class}</p>
-          <p class="mb-2"><strong>Confiance:</strong> ${predictions.final.confidence}%</p>
-          <p class="mb-0"><strong>Méthode:</strong> Vote majoritaire pondéré</p>
-        </div>
-      `;
-      finalPrediction.innerHTML = finalHTML;
+  // Appliquer le thème au chargement
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    applyTheme(savedTheme === 'dark');
+  }
+
+  // Écouter les changements du toggle directement (plus rapide que MutationObserver)
+  function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      // Utiliser capture pour intercepter avant le script de navigation
+      themeToggle.addEventListener('click', function() {
+        // Petit délai pour laisser le script de navigation mettre à jour localStorage
+        setTimeout(function() {
+          const currentTheme = localStorage.getItem('theme');
+          applyTheme(currentTheme === 'dark');
+        }, 10);
+      }, true);
     }
   }
-}
 
-function showClassDistribution(classDistribution) {
-  const classDistributionSection = document.getElementById('classDistributionSection');
-  if (classDistributionSection && classDistribution) {
-    classDistributionSection.style.display = 'block';
-    
-    // Créer un graphique simple avec les données
-    const chartContainer = document.getElementById('classDistributionChart');
-    if (chartContainer) {
-      // Pour l'instant, afficher un tableau simple
-      // Dans une vraie implémentation, on utiliserait Chart.js ou une autre librairie
-      let chartHTML = '<div class="table-responsive"><table class="table table-sm">';
-      chartHTML += '<thead><tr><th>Classe</th><th>Nombre</th><th>Pourcentage</th><th>Barre</th></tr></thead><tbody>';
-      
-      const total = Object.values(classDistribution).reduce((sum, count) => sum + count, 0);
-      
-      Object.entries(classDistribution).forEach(([className, count]) => {
-        const percentage = ((count / total) * 100).toFixed(1);
-        const barWidth = Math.max(5, (count / total) * 100);
-        chartHTML += `
-          <tr>
-            <td><strong>${className}</strong></td>
-            <td>${count}</td>
-            <td>${percentage}%</td>
-            <td>
-              <div class="progress" style="height: 20px;">
-                <div class="progress-bar bg-gradient-info" style="width: ${barWidth}%"></div>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-      
-      chartHTML += '</tbody></table></div>';
-      chartContainer.innerHTML = chartHTML;
-    }
-    
-    // Afficher les statistiques
-    const classStats = document.getElementById('classStats');
-    if (classStats) {
-      const total = Object.values(classDistribution).reduce((sum, count) => sum + count, 0);
-      const uniqueClasses = Object.keys(classDistribution).length;
-      const mostCommon = Object.entries(classDistribution).reduce((a, b) => a[1] > b[1] ? a : b);
-      
-      classStats.innerHTML = `
-        <div class="stat-item mb-3">
-          <div class="stat-value">${total}</div>
-          <div class="stat-label">Total Échantillons</div>
-        </div>
-        <div class="stat-item mb-3">
-          <div class="stat-value">${uniqueClasses}</div>
-          <div class="stat-label">Classes Uniques</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">${mostCommon[0]}</div>
-          <div class="stat-label">Plus Commun</div>
-        </div>
-      `;
-    }
-  }
-}
-
-function createDataTable(data) {
-  if (!data || data.length === 0) return '<p class="text-muted">Aucune donnée à afficher</p>';
-  
-  let tableHTML = '<div class="table-responsive"><table class="table table-sm table-striped">';
-  
-  // En-têtes
-  if (data[0]) {
-    tableHTML += '<thead><tr>';
-    Object.keys(data[0]).forEach(key => {
-      tableHTML += `<th>${key}</th>`;
+  // Écouter les changements dans localStorage (synchronisation entre onglets uniquement)
+  function setupStorageListener() {
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'theme') {
+        applyTheme(e.newValue === 'dark');
+      }
     });
-    tableHTML += '</tr></thead>';
   }
-  
-  // Données (limitées aux 10 premières lignes)
-  tableHTML += '<tbody>';
-  data.slice(0, 10).forEach(row => {
-    tableHTML += '<tr>';
-    Object.values(row).forEach(value => {
-      tableHTML += `<td>${typeof value === 'number' ? value.toFixed(4) : value}</td>`;
+
+  // Initialisation optimisée
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      setupThemeToggle();
+      setupStorageListener();
     });
-    tableHTML += '</tr>';
-  });
-  tableHTML += '</tbody></table></div>';
-  
-  if (data.length > 10) {
-    tableHTML += `<p class="text-muted text-center mt-2">Affichage des 10 premières lignes sur ${data.length} total</p>`;
+  } else {
+    // DOM déjà chargé
+    initTheme();
+    setupThemeToggle();
+    setupStorageListener();
   }
-  
-  return tableHTML;
-}
-
-function viewDetailedResults() {
-  // Redirection vers la page d'analyse détaillée
-  window.location.href = '/analysis';
-}
-
-function goToDashboard() {
-  // Redirection vers le dashboard avec les résultats
-  window.location.href = '/index?analyze=true';
-}
+})();
 </script>
 {% endblock javascripts %}
+
+
