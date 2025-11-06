@@ -1,0 +1,4 @@
+*.pkl
+*.pcap
+data/cicids2017/
+models/
