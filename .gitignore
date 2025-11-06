@@ -1,4 +1,33 @@
+# === Dossiers à ignorer ===
+data/
+models/
+uploads/
+
+# === Fichiers volumineux ===
 *.pkl
 *.pcap
-data/cicids2017/
-models/
+*.zip
+*.tar
+*.gz
+*.csv
+
+# === Dossiers et fichiers Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.venv/
+.env
+.venv/
+*.egg-info/
+build/
+dist/
+
+# === IDEs ===
+.vscode/
+.idea/
+
+# === OS files ===
+.DS_Store
+Thumbs.db
