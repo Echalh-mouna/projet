@@ -1,0 +1,338 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Résultats de l'analyse du trafic réseau - SafeNet IDS{% endblock %}
+
+{% block stylesheets %}
+<!-- Mode sombre - Styles pour analysis.html -->
+<style>
+  /* Mode sombre - Body et background */
+  body.dark-version {
+    background: #1a1f2e !important;
+    color: #ffffff !important;
+  }
+
+  body.dark-version .main-content {
+    background: #1a1f2e !important;
+  }
+
+  /* Mode sombre - Cards */
+  body.dark-version .card {
+    background-color: #404B69 !important;
+    color: #f8f9fa !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+
+  body.dark-version .card-header {
+    background: linear-gradient(135deg, #6a007d, #cb0c9f) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  }
+
+  /* Mode sombre - Text */
+  body.dark-version .text-muted {
+    color: rgba(255,255,255,0.7) !important;
+  }
+
+  body.dark-version h4,
+  body.dark-version h5,
+  body.dark-version h6,
+  body.dark-version .fw-bold {
+    color: #ffffff !important;
+  }
+
+  body.dark-version .text-primary {
+    color: #cb0c9f !important;
+  }
+
+  /* Mode sombre - Tables */
+  body.dark-version .table {
+    color: #ffffff !important;
+  }
+
+  body.dark-version .table th {
+    background-color: #283149 !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+
+  body.dark-version .table td {
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+
+  body.dark-version .table-hover tbody tr:hover {
+    background-color: rgba(255,255,255,0.05) !important;
+  }
+
+  /* Mode sombre - Alertes */
+  body.dark-version .alert {
+    background-color: #404B69 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #ffffff !important;
+  }
+
+  /* Mode sombre - Boutons */
+  body.dark-version .btn-outline-primary {
+    border-color: #6a007d !important;
+    color: #cb0c9f !important;
+  }
+
+  body.dark-version .btn-outline-primary:hover {
+    background-color: #6a007d !important;
+    color: #ffffff !important;
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  {% if error %}
+  <div class="alert alert-warning text-white text-center">
+    ⚠️ {{ error }}
+  </div>
+  {% else %}
+
+  <!-- ============================ -->
+  <!-- TITRE -->
+  <!-- ============================ -->
+  <div class="card mb-4 shadow-sm border-0">
+    <div class="card-body text-center" style="background: linear-gradient(135deg, #6a007d, #cb0c9f); color: rgba(255,255,255,0.95);">
+      <h6 class="mb-0 fw-bold" style="color: #ffffff !important;"><i class="fas fa-shield-alt me-2"></i>Résultats de l'analyse du trafic réseau</h6>
+      <p class="text-sm opacity-8 mb-0">
+        Modèle utilisé : <b>{{ results.model_used | upper if results else model_used | upper }}</b>
+      </p>
+    </div>
+  </div>
+
+  <!-- ============================ -->
+  <!-- STATISTIQUES GLOBALES -->
+  <!-- ============================ -->
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h6 class="text-muted">Flux total</h6>
+          <h4 class="fw-bold" style="color: #6a007d;">{{ results.total_samples if results else total_flows }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h6 class="text-muted">Flux normaux</h6>
+          <h4 class="fw-bold text-success">
+            {{ results.class_distribution.Normal if results and results.class_distribution else normal_flows }}
+          </h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h6 class="text-muted">Flux malveillants</h6>
+          <h4 class="fw-bold text-danger">
+            {% if results and results.class_distribution %}
+              {{ results.total_samples - results.class_distribution.get('Normal', 0) }}
+            {% else %}
+              {{ attack_flows }}
+            {% endif %}
+          </h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h6 class="text-muted">Menace détectée (%)</h6>
+          <h4 class="fw-bold text-warning">
+            {% if results and results.class_distribution %}
+              {{
+                ((results.total_samples - results.class_distribution.get('Normal', 0)) /
+                results.total_samples * 100) | round(2)
+              }}
+            {% else %}
+              {{ threat_percentage }}
+            {% endif %}%
+          </h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ -->
+  <!-- RÉPARTITION DES TYPES D'ATTAQUES -->
+  <!-- ============================ -->
+  <div class="card mt-4 shadow-sm border-0">
+    <div class="card-header text-white" style="background: linear-gradient(135deg, #6a007d, #cb0c9f);">
+      <h6 class="mb-0 fw-bold" style="color: #ffffff !important;"><i class="fas fa-bug me-2"></i>Répartition des types d'attaques détectées</h6>
+    </div>
+    <div class="card-body">
+      {% if results and results.class_distribution %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Type d'attaque</th>
+              <th>Nombre</th>
+              <th>Pourcentage (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, val in results.class_distribution.items() if key != 'Normal' %}
+            <tr>
+              <td>{{ key }}</td>
+              <td>{{ val }}</td>
+              <td>{{ (val / results.total_samples * 100) | round(2) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-center text-muted">Aucune attaque détectée.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ============================ -->
+  <!-- VISUALISATIONS DES PRÉDICTIONS -->
+  <!-- ============================ -->
+  {% if results.attack_chart or results.feature_chart %}
+  <div class="card mt-4 shadow-sm border-0">
+    <div class="card-header text-white" style="background: linear-gradient(135deg, #6a007d, #cb0c9f);">
+      <h6 class="mb-0 fw-bold" style="color: #ffffff !important;"><i class="fas fa-chart-pie me-2"></i>Visualisations des Prédictions</h6>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <!-- Diagramme de répartition des attaques -->
+        {% if results.attack_chart %}
+        <div class="col-md-6 text-center mb-3 mb-md-0">
+          <h6 class="text-muted mb-3">Répartition des types de trafic</h6>
+          <img src="data:image/png;base64,{{ results.attack_chart }}" 
+               class="img-fluid rounded shadow-sm" 
+               alt="Répartition des attaques">
+        </div>
+        {% endif %}
+
+        <!-- Diagramme d'importance des caractéristiques -->
+        {% if results.feature_chart %}
+        <div class="col-md-6 text-center">
+          <h6 class="text-muted mb-3">Importance des caractéristiques principales</h6>
+          <img src="data:image/png;base64,{{ results.feature_chart }}" 
+               class="img-fluid rounded shadow-sm" 
+               alt="Importance des features">
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ============================ -->
+  <!-- MÉTRIQUES DU MODÈLE -->
+  <!-- ============================ -->
+  {% if metrics %}
+  <div class="card mt-4 shadow-sm border-0">
+    <div class="card-header text-white" style="background: linear-gradient(135deg, #6a007d, #cb0c9f);">
+      <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2"></i>Métriques de performance du modèle</h6>
+    </div>
+    <div class="card-body">
+      <div class="row text-center">
+        <div class="col-md-3">
+          <h6 class="text-muted">Accuracy</h6>
+          <h5 class="fw-bold" style="color: #6a007d;">{{ metrics.accuracy or '—' }}</h5>
+        </div>
+        <div class="col-md-3">
+          <h6 class="text-muted">Précision</h6>
+          <h5 class="fw-bold" style="color: #cb0c9f;">{{ metrics.precision or '—' }}</h5>
+        </div>
+        <div class="col-md-3">
+          <h6 class="text-muted">Rappel</h6>
+          <h5 class="fw-bold" style="color: #6a007d;">{{ metrics.recall or '—' }}</h5>
+        </div>
+        <div class="col-md-3">
+          <h6 class="text-muted">F1-Score</h6>
+          <h5 class="fw-bold" style="color: #cb0c9f;">{{ metrics.f1 or '—' }}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+
+  <!-- ============================ -->
+  <!-- BOUTON RETOUR -->
+  <!-- ============================ -->
+  <div class="text-center mt-4 mb-5">
+    <a href="{{ url_for('home_blueprint.upload') }}" class="btn btn-lg text-white fw-bold" style="background: linear-gradient(135deg, #6a007d, #cb0c9f); border: none;">
+      <i class="fas fa-upload me-2"></i>Analyser un autre fichier PCAP
+    </a>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- Script de gestion du mode sombre - Optimisé pour performance -->
+<script>
+(function() {
+  'use strict';
+  
+  // Fonction pour appliquer le thème (sans reflow forcé)
+  function applyTheme(isDark) {
+    if (isDark) {
+      document.body.classList.add('dark-version');
+    } else {
+      document.body.classList.remove('dark-version');
+    }
+  }
+
+  // Appliquer le thème au chargement
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    applyTheme(savedTheme === 'dark');
+  }
+
+  // Écouter les changements du toggle directement (plus rapide que MutationObserver)
+  function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      // Utiliser capture pour intercepter avant le script de navigation
+      themeToggle.addEventListener('click', function() {
+        // Petit délai pour laisser le script de navigation mettre à jour localStorage
+        setTimeout(function() {
+          const currentTheme = localStorage.getItem('theme');
+          applyTheme(currentTheme === 'dark');
+        }, 10);
+      }, true);
+    }
+  }
+
+  // Écouter les changements dans localStorage (synchronisation entre onglets uniquement)
+  function setupStorageListener() {
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'theme') {
+        applyTheme(e.newValue === 'dark');
+      }
+    });
+  }
+
+  // Initialisation optimisée
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      setupThemeToggle();
+      setupStorageListener();
+    });
+  } else {
+    // DOM déjà chargé
+    initTheme();
+    setupThemeToggle();
+    setupStorageListener();
+  }
+})();
+</script>
+{% endblock javascripts %}
